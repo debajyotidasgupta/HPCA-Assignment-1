@@ -6,6 +6,7 @@ Benchmarking with GEM5 simulation
 
 - **_assignment/config.py\:_** Configuration file for the gem5 simulation.
 - **_assignment/qsort4.c\:_** C implementation of the quicksort algorithm, will be used for the benchmark.
+- **_HPCA.pdf\:_** The assignment problem statement and specifications in PDF format.
 
 ## Project Structure
 
