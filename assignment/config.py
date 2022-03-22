@@ -1,3 +1,5 @@
+import argparse
+
 import m5
 from m5.objects import *
 
@@ -29,6 +31,8 @@ class L2Cache(Cache):
     tgts_per_mshr = 12
 
 
+args = argparse.ArgumentParser(description='Arguments for gem5 simulation')
+
 system = System()
 
 system.clk_domain = SrcClockDomain()
@@ -43,3 +47,10 @@ system.cpu = DerivO3CPU()
 system.mem_ctrl = MemCtrl()
 system.mem_ctrl.dram = DDR3_1600_8x8()
 system.mem_ctrl.dram.range = system.mem_ranges[0]
+
+system.cache_line_size = '64kB'
+system.cpu.icache = L1ICache()
+system.cpu.dcache = L1DCache()
+system.cpu.l2cache = L2Cache()
+
+system.numRobs = 1
