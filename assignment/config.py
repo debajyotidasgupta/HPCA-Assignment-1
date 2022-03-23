@@ -47,6 +47,7 @@ from m5.objects import *
 from m5.objects.BranchPredictor import *
 from m5.util import addToPath, fatal, warn
 
+addToPath('./')
 addToPath('../')
 
 args = argparse.ArgumentParser(description='Arguments for gem5 simulation')
