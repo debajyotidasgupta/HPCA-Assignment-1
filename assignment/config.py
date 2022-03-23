@@ -31,18 +31,24 @@
 |       gem5 as the simulator.                        |
 +-----------------------------------------------------+
 |       Language:  Python3                            |
-|       File name: config.py.py                       |
+|       File name: config.py                          |
 |       License:   MIT Open Source License            |
 |       Year:      2021-2022 Spring Semester          |
 |       Course:    High Performance Computer Arch.    |
 +-----------------------------------------------------+
 """
 
+import options
+from common import Simulation
 import argparse
 
 import m5
 from m5.objects import *
 from m5.objects.BranchPredictor import *
+from m5.util import addToPath, fatal, warn
+
+addToPath('../')
+
 
 """
 [*] Add Argument Parser for the script
@@ -56,23 +62,13 @@ from m5.objects.BranchPredictor import *
         6. bp_type       - Branch predictor type      (type: str)
         7. numROBEntries - Number of ROB entries      (type: int)
         8. numIQEntries  - Number of IQ entries       (type: int)
+[*] Add the simulation options for the argument parser using the
+    Options class from common.py
 """
 
 args = argparse.ArgumentParser(description='Arguments for gem5 simulation')
-args.add_argument('--l1d_size', default='64kB',
-                  help='L1 data cache size', type=str)
-args.add_argument('--l1i_size', default='32kB',
-                  help='L1 instruction cache size', type=str)
-args.add_argument('--l2_size', default='128kB', help='L2 cache size', type=str)
-args.add_argument('--l1_assoc', default=2,
-                  help='L1 cache associativity', type=int)
-args.add_argument('--l2_assoc', default=2,
-                  help='L2 cache associativity', type=int)
-args.add_argument('--bp_type', default='TournamentBP')
-args.add_argument('--numROBEntries', default=128,
-                  help='Number of ROB entries', type=int)
-args.add_argument('--numIQEntries', default=64,
-                  help='Number of IQ entries', type=int)
+options.addSEOptions(args)
+options.addCommonOptions(args)
 
 
 """
