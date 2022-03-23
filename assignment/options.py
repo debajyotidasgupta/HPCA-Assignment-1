@@ -109,6 +109,7 @@ def addCommonOptions(parser):
 
 def addSEOptions(parser):
     # Benchmark options
+    parser.add_argument('-b', '--benchmark', default='', type=str)
     parser.add_argument("-c", "--cmd", default="",
                         help="The binary to run in syscall emulation mode.")
     parser.add_argument("-o", "--options", default="",

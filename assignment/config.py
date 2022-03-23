@@ -38,21 +38,37 @@
 +-----------------------------------------------------+
 """
 
+from concurrent.futures import process
+from multiprocessing.dummy import Process
 import options
-from common import Simulation
 import argparse
+import sys
 
+# Import m5 (gem5) library created when gem5 is built
 import m5
+
+# Import all of the SimObjects
 from m5.objects import *
+
+# Import all the brach prediction objects
 from m5.objects.BranchPredictor import *
+
+# Import all the utility functions
 from m5.util import addToPath, fatal, warn
 
+# Add the current directory to the python path
 addToPath('./')
-addToPath('../')
 
-args = argparse.ArgumentParser(description='Arguments for gem5 simulation')
-options.addSEOptions(args)
-options.addCommonOptions(args)
+# Create the parser
+parser = argparse.ArgumentParser(description='Arguments for gem5 simulation')
+
+# Add the gem5 simulation options to the parser
+options.addSEOptions(parser)
+
+# Add the gem5 common options to the parser
+options.addCommonOptions(parser)
+
+args = parser.parse_args()
 
 
 """
@@ -74,13 +90,22 @@ Purpose: To create a L1 cache
 
 
 class L1Cache(Cache):
-    tag_latency = 2
-    data_latency = 2
-    response_latency = 2
-    mshrs = 4
-    tgts_per_mshr = 20
+    tag_latency = 2                                 # Tag access latency
+    data_latency = 2                                # Data access latency
+    response_latency = 2                            # Response latency
+    mshrs = 4                                       # Number of MSHRs
+    tgts_per_mshr = 20                              # Targets per MSHR
 
-    assoc = args.l1_assoc
+    assoc = args.l1_assoc                           # Associativity
+
+    def connectBus(self, bus):
+        """Connect this cache to a memory-side bus"""
+        self.mem_side = bus.cpu_side_ports
+
+    def connectCPU(self, cpu):
+        """Connect this cache's port to a CPU-side port
+           This must be defined in a subclass"""
+        raise NotImplementedError
 
 
 """
@@ -95,7 +120,11 @@ Purpose: To create a L1 instruction cache
 
 
 class L1ICache(L1Cache):
-    size = args.l1i_size
+    size = args.l1i_size                            # Size of the cache
+
+    def connectCPU(self, cpu):
+        """Connect this cache's port to a CPU icache port"""
+        self.cpu_side = cpu.icache_port
 
 
 """
@@ -110,45 +139,109 @@ Purpose: To create a L1 data cache
 
 
 class L1DCache(L1Cache):
-    size = args.l1d_size
+    size = args.l1d_size                            # Size of the cache
+
+    def connectCPU(self, cpu):
+        """Connect this cache's port to a CPU dcache port"""
+        self.cpu_side = cpu.dcache_port
 
 
 class L2Cache(Cache):
-    tag_latency = 20
-    data_latency = 20
-    response_latency = 20
-    mshrs = 20
-    tgts_per_mshr = 12
+    tag_latency = 20                                # Tag access latency
+    data_latency = 20                               # Data access latency
+    response_latency = 20                           # Response latency
+    mshrs = 20                                      # Number of MSHRs
+    tgts_per_mshr = 12                              # Targets per MSHR
 
-    size = args.l2_size
-    assoc = args.l2_assoc
+    size = args.l2_size                             # Size of the cache
+    assoc = args.l2_assoc                           # Associativity
+
+    def connectCPUSideBus(self, bus):
+        self.cpu_side = bus.mem_side_ports
+
+    def connectMemSideBus(self, bus):
+        self.mem_side = bus.cpu_side_ports
 
 
+# Create the system we are going to simulate
 system = System()
 
-system.clk_domain = SrcClockDomain()
-system.clk_domain.clock = '2GHz'
-system.clk_domain.voltage_domain = VoltageDomain()
+# Set the clock frequency of the system (and all of its children)
+system.clk_domain = SrcClockDomain()                # Clock domain
+system.clk_domain.clock = '2GHz'                    # Clock frequency
+system.clk_domain.voltage_domain = VoltageDomain()  # Voltage domain
 
-system.mem_mode = 'timing'
+# Set the memory mode of the system
+system.mem_mode = 'timing'                          # Use timing access mode
+
+# Set the memory range of the system
+# Add 1GB of memory (single memory range)
 system.mem_ranges = [AddrRange('1GB')]
 
-system.cpu = DerivO3CPU()
+# Create a CPU for the system
+system.cpu = DerivO3CPU()                           # Use the DerivO3CPU
 
-system.mem_ctrl = MemCtrl()
-system.mem_ctrl.dram = DDR3_1600_8x8()
-system.mem_ctrl.dram.range = system.mem_ranges[0]
+system.cache_line_size = 64                         # Set the cache line size
+system.cpu.icache = L1ICache()                      # Create the L1 instr cache
+system.cpu.dcache = L1DCache()                      # Create the L1 data cache
+system.cpu.l2cache = L2Cache()                      # Create the L2 cache
 
-system.cache_line_size = '64kB'
-system.cpu.icache = L1ICache()
-system.cpu.dcache = L1DCache()
-system.cpu.l2cache = L2Cache()
+# Create a system bus for the system, a system crossbar in this case
+system.membus = SystemXBar()
 
-system.cpu.numRobs = 1
+# Create a memory bus, a coherent crossbar, in this case
+system.l2bus = L2XBar()
 
-if args.bp_type == 'TournamentBP':
-    system.cpu.branchPred = TournamentBP()
-elif args.bp_type == 'BimodalBP':
-    system.cpu.branchPred = BimodalBP()
-elif args.bp_type == 'LocalBP':
-    system.cpu.branchPred = LocalBP()
+# Connect the instruction and data caches to the CPU
+system.cpu.icache.connectCPU(system.cpu)
+system.cpu.dcache.connectCPU(system.cpu)
+
+# Hook the CPU ports up to the l2bus
+system.cpu.icache.connectBus(system.l2bus)
+system.cpu.dcache.connectBus(system.l2bus)
+
+# Create an L2 cache and connect it to the l2bus
+system.cpu.l2cache.connectCPUSideBus(system.l2bus)
+
+# Connect the L2 cache to the membus
+system.cpu.l2cache.connectMemSideBus(system.membus)
+
+# Create the interrupt controller for the CPU and connect to the membus
+system.cpu.createInterruptController()
+system.cpu.interrupts[0].pio = system.membus.mem_side_ports
+system.cpu.interrupts[0].int_requestor = system.membus.cpu_side_ports
+system.cpu.interrupts[0].int_responder = system.membus.mem_side_ports
+
+system.system_port = system.membus.cpu_side_ports
+
+# Create a memory controller for the system
+system.mem_ctrl = MemCtrl()                          # Use the MemCtrl
+system.mem_ctrl.dram = DDR3_1600_8x8()               # Use the DDR3_1600_8x8 DRAM
+system.mem_ctrl.dram.range = system.mem_ranges[0]    # Set the memory range
+system.mem_ctrl.port = system.membus.mem_side_ports  # Set the memory port
+
+
+system.cpu.numRobs = 1                              # Number of ROBs
+
+if args.bp_type == 'TournamentBP':                  # Branch predictor type
+    system.cpu.branchPred = TournamentBP()          # Use the TournamentBP
+elif args.bp_type == 'BimodalBP':                   # Branch predictor type
+    system.cpu.branchPred = BimodalBP()             # Use the BimodalBP
+elif args.bp_type == 'LocalBP':                     # Branch predictor type
+    system.cpu.branchPred = LocalBP()               # Use the LocalBP
+
+
+binary = args.benchmark
+system.workload = SEWorkload.init_compatible(binary)
+
+process = Process()
+process.cmd = [binary]
+system.cpu.workload = process
+system.cpu.createThreads()
+
+root = Root(full_system=False, system=system)
+m5.instantiate()
+
+print("Beginning simulation!")
+exit_event = m5.simulate()
+print('Exiting @ tick {} because {}'.format(m5.curTick(), exit_event.getCause()))
