@@ -232,16 +232,26 @@ elif args.bp_type == 'LocalBP':                     # Branch predictor type
 
 
 binary = args.benchmark
+
 system.workload = SEWorkload.init_compatible(binary)
 
+# Create a process for a simple "Hello World" application
 process = Process()
+
+# Set the command
+# cmd is a list which begins with the executable (like argv)
 process.cmd = [binary]
+
+# Set the cpu to use the process as its workload and create thread contexts
 system.cpu.workload = process
 system.cpu.createThreads()
 
+# set up the root SimObject and start the simulation
 root = Root(full_system=False, system=system)
+
+# instantiate all of the objects we've created above
 m5.instantiate()
 
 print("Beginning simulation!")
 exit_event = m5.simulate()
-print('Exiting @ tick {} because {}'.format(m5.curTick(), exit_event.getCause()))
+print('Exiting @ tick %i because %s' % (m5.curTick(), exit_event.getCause()))
