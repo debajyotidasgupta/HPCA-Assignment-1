@@ -49,23 +49,6 @@ from m5.util import addToPath, fatal, warn
 
 addToPath('../')
 
-
-"""
-[*] Add Argument Parser for the script
-[*] Add the arguments for the argument parser
-    [*] The arguments are:
-        1. l1d_size      - L1 data cache size         (type: str)
-        2. l1i_size      - L1 instruction cache size  (type: str)
-        3. l2_size       - L2 cache size              (type: str)
-        4. l1_assoc      - L1 cache associativity     (type: int)
-        5. l2_assoc      - L2 cache associativity     (type: int)
-        6. bp_type       - Branch predictor type      (type: str)
-        7. numROBEntries - Number of ROB entries      (type: int)
-        8. numIQEntries  - Number of IQ entries       (type: int)
-[*] Add the simulation options for the argument parser using the
-    Options class from common.py
-"""
-
 args = argparse.ArgumentParser(description='Arguments for gem5 simulation')
 options.addSEOptions(args)
 options.addCommonOptions(args)

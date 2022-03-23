@@ -36,6 +36,18 @@
 # testers and traffic generators.
 
 
+"""
+[*] Add Argument Parser for the script
+[*] Add the No ISA arguments for the argument parser
+    [*] The arguments are:
+        1. l1d_size      - L1 data cache size         (type: str)
+        2. l1i_size      - L1 instruction cache size  (type: str)
+        3. l2_size       - L2 cache size              (type: str)
+        4. l1_assoc      - L1 cache associativity     (type: int)
+        5. l2_assoc      - L2 cache associativity     (type: int)
+"""
+
+
 def addNoISAOptions(parser):
     parser.add_argument('--l1d_size', default='64kB',
                         help='L1 data cache size', type=str)
@@ -48,6 +60,15 @@ def addNoISAOptions(parser):
     parser.add_argument('--l2_assoc', default=2,
                         help='L2 cache associativity', type=int)
 # Add common options that assume a non-NULL ISA.
+
+
+"""
+[*] Add the common arguments for the argument parser
+    [*] The arguments are:
+        1. bp_type       - Branch predictor type      (type: str)
+        2. numROBEntries - Number of ROB entries      (type: int)
+        3. numIQEntries  - Number of IQ entries       (type: int)
+"""
 
 
 def addCommonOptions(parser):
@@ -68,6 +89,22 @@ def addCommonOptions(parser):
         "once with: system.cpu[:].mmu. If given multiple times, dump stats "
         "that are present under any of the roots. If not given, dump all "
         "stats. ")
+
+
+"""
+[*] Add the simulation options for the argument parser
+    [*] The arguments are:
+        1. cmd           - Command to run in syscall emulation mode.
+        2. options       - Options to pass to the command.
+        3. env           - Environment to pass to the command.
+        4. input         - Input to pass to the command.
+        5. output        - Output to redirect to.
+        6. errout        - Error output to redirect to.
+        7. chroot        - The chroot option allows a user to alter the
+        8. interp-dir    - The interp-dir option is used for
+        9. redirects     - A collection of one or more redirect paths
+        10. wait-gdb     - Wait for remote GDB to connect.
+"""
 
 
 def addSEOptions(parser):
