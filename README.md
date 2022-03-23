@@ -4,30 +4,74 @@ Benchmarking with GEM5 simulation
 
 ## Important Files
 
-- **_assignment/config.py\:_** Configuration file for the gem5 simulation.
-- **_assignment/qsort4.c\:_** C implementation of the quicksort algorithm, will be used for the benchmark.
 - **_HPCA.pdf\:_** The assignment problem statement and specifications in PDF format.
+- **_assignment/\:_** The directory containing the source code for the assignment.
+    - **_config.py\:_** Configuration file for the gem5 simulation.
+    - **_options.py\:_** File for arguments for the config script.
+    - **_qsort4.c\:_** C implementation of the quicksort algorithm, will be used for the benchmark.
+    - **_qsort4\:_** Binary file of the quicksort algorithm, will be used for the benchmark.
+    - **_m5out_/\:_** Directory for the gem5 simulation output.
+        - **_stats.txt\:_** File containing the gem5 simulation statistics.
+        - **_config.dot\:_** File containing the gem5 configuration in dot format.
+        - **_config.png\:_** File containing the gem5 configuration in png format.
+        - **_config.ini\:_** File containing the gem5 configuration in ini format.
+        - **_config.json\:_** File containing the gem5 configuration in json format.
 
 ## Project Structure
 
 ```
 .
 ├── Benchmark Programs
-│   ├── Knight.c
-│   ├── LUDecomp.c
-│   ├── blocked-matmul.c
-│   ├── qsort2.c
-│   ├── qsort3.c
-│   ├── qsort4.c
-│   ├── qsort5.c
-│   ├── queens.c
-│   ├── radix.c
-│   ├── sieve.c
-│   └── towers.c
+│   ├── Knight.c
+│   ├── LUDecomp.c
+│   ├── blocked-matmul.c
+│   ├── qsort2.c
+│   ├── qsort3.c
+│   ├── qsort4.c
+│   ├── qsort5.c
+│   ├── queens.c
+│   ├── radix.c
+│   ├── sieve.c
+│   └── towers.c
 ├── HPCA.pdf
 ├── LICENSE
 ├── README.md
 └── assignment
+    ├── __pycache__
+    │   └── options.cpython-38.pyc
     ├── config.py
+    ├── m5out
+    │   ├── config.dot
+    │   ├── config.ini
+    │   ├── config.json
+    │   ├── config.png
+    │   └── stats.txt
+    ├── options.py
+    ├── qsort4
     └── qsort4.c
+```
+
+# Getting Started
+
+```bash
+# Install gem5
+sudo apt install build-essential git m4 scons zlib1g zlib1g-dev libprotobuf-dev protobuf-compiler libprotoc-dev libgoogle-perftools-dev python-dev python
+git clone https://gem5.googlesource.com/public/gem5
+cd gem5
+python3 `which scons` build/X86/gem5.opt -j9
+
+# Clone the repository
+$ git clone https://github.com/debajyotidasgupta/HPCA-Assignment-1.git
+
+# Change directory to the assignment directory
+$ cd HPCA-Assignment-1
+
+# Copy files from the assignment directory to the benchmark programs directory
+$ cp -r assignment/ ~/gem5/configs/
+
+# Change directory to the gem5 root directory
+$ cd ~/gem5
+
+# Run the gem5 simulation
+$ build/X86/gem5.opt -d configs/assignment/m5out configs/assignment/config.py -b configs/assignment/qsort4
 ```
