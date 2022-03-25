@@ -47,6 +47,7 @@ def stats_extractor(fp):
     contents = fp.readlines()
     needs = []
     for key in stats:
+        print(contents[stats[key]-1])
         l = re.split('\s+', contents[stats[key]-1], maxsplit= 2)
         needs.append(l[1])
 
