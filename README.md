@@ -21,11 +21,30 @@ Benchmarking with GEM5 simulation
 
 ```
 .
+├── Benchmark Programs
+│   ├── Knight.c
+│   ├── LUDecomp.c
+│   ├── blocked-matmul.c
+│   ├── qsort2.c
+│   ├── qsort3.c
+│   ├── qsort4.c
+│   ├── qsort5.c
+│   ├── queens.c
+│   ├── radix.c
+│   ├── sieve.c
+│   └── towers.c
+├── HPCA.pdf
+├── LICENSE
+├── README.md
 ├── assignment
-│   ├── __pycache__
 │   ├── config.py
 │   ├── logs.txt
 │   ├── m5out
+│   │   ├── config.dot
+│   │   ├── config.ini
+│   │   ├── config.json
+│   │   ├── config.png
+│   │   └── stats.txt
 │   ├── options.py
 │   ├── plot.py
 │   ├── qsort4
@@ -33,20 +52,7 @@ Benchmarking with GEM5 simulation
 │   ├── run.py
 │   ├── runs.tar.gz
 │   └── tmp.txt
-├── config.py
-├── logs.txt
-├── m5out
-│   ├── config.dot
-│   ├── config.ini
-│   ├── config.json
-│   ├── config.png
-│   └── stats.txt
-├── options.py
-├── plot.py
-├── qsort4
-├── qsort4.c
-├── run.py
-└── tmp.txt
+└── stats_new.txt
 ```
 
 # Getting Started
