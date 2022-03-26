@@ -46,7 +46,6 @@ Benchmarking with GEM5 simulation
 ├── qsort4
 ├── qsort4.c
 ├── run.py
-├── runs.tar.gz
 └── tmp.txt
 ```
 
