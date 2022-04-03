@@ -5,6 +5,12 @@ import os
 
 
 if __name__ == '__main__':
+    if not os.path.exists('runs'):
+        os.mkdir('runs')
+
+    if not os.path.exists('runs/logs.txt'):
+        os.system('touch runs/logs.txt')
+
     # log_file will contain all the configurations that have been simulated
     # so that they won't be simulated again for optimization
     log_file = "/home/ubuntu/gem5/configs/assignment/runs/logs.txt"
