@@ -1,5 +1,5 @@
-from importlib.resources import contents
 import matplotlib.pyplot as plt
+import matplotlib.ticker as mticker
 import seaborn as sns
 import argparse
 import os
@@ -95,23 +95,29 @@ def stats_extractor(fp):
     needed_info['rob_access'] = info['rob_reads'] + info['rob_writes']
 
     # total miss cycles = miss in all 3 caches
-    needed_info['overall_miss_cycle'] = info['miss_cycle_dcache'] + info['miss_cycle_icache'] + info['miss_cycle_l2cache']
+    # needed_info['overall_miss_cycle'] = info['miss_cycle_dcache'] + info['miss_cycle_icache'] + info['miss_cycle_l2cache']
+
+    needed_info['overall_miss_cycle'] = info['miss_cycle_l2cache']
 
     # overall miss rate 
     # total_mem_access = info['mem_read'] + info['mem_write']
-    icache_miss = info['miss_rate_icache']*info['num_access_icache']
-    dcache_miss = info['miss_rate_dcache']*info['num_access_dcache']
-    l2cache_miss = info['miss_rate_l2cache']*info['num_access_l2cache']
+    # icache_miss = info['miss_rate_icache']*info['num_access_icache']
+    # dcache_miss = info['miss_rate_dcache']*info['num_access_dcache']
+    # l2cache_miss = info['miss_rate_l2cache']*info['num_access_l2cache']
 
-    total_mem_access = info['num_access_icache'] + info['num_access_dcache'] + info['num_access_l2cache']
+    # total_mem_access = info['num_access_icache'] + info['num_access_dcache'] + info['num_access_l2cache']
 
-    needed_info['overall_miss_rate'] = (icache_miss + dcache_miss + l2cache_miss)/total_mem_access
+    # needed_info['overall_miss_rate'] = (icache_miss + dcache_miss + l2cache_miss)/total_mem_access
+
+    needed_info['overall_miss_rate'] = info['miss_rate_l2cache']
 
     # overall miss latency
 
-    needed_info['overall_miss_lat'] = ( icache_miss*info['avg_miss_lat_icache'] +
-                                        dcache_miss*info['avg_miss_lat_dcache'] +
-                                        l2cache_miss*info['avg_miss_lat_l2cache'])/ (icache_miss + dcache_miss + l2cache_miss)
+    # needed_info['overall_miss_lat'] = ( icache_miss*info['avg_miss_lat_icache'] +
+    #                                     dcache_miss*info['avg_miss_lat_dcache'] +
+    #                                     l2cache_miss*info['avg_miss_lat_l2cache'])/ (icache_miss + dcache_miss + l2cache_miss)
+
+    needed_info['overall_miss_lat'] = info['avg_miss_lat_l2cache']
 
 
     needed_info['lsqfull_stall'] = info['lsqfull_stall']
@@ -121,69 +127,77 @@ def stats_extractor(fp):
 
     return needed_info, info
 
-def plotter(x, y, xlabel, ylabel):
-    # data = pd.DataFrame({xlabel: x, ylabel: y})
-    # sns.lineplot(data, x= xlabel, y= ylabel)
-    plt.plot(x, y)
-    plt.ylabel(ylabel)
-    plt.xlabel(xlabel)
-    plt.show()
 
 
+# initialize configs list
+config_list = []
 
-if __name__ == "__main__":
+# initialize to contain list for every stats
+stats_lists = {}
+for item in stats_needed:
+    stats_lists[item] = list()
 
-    # initialize configs list
-    config_list = []
+# get directory path
+dirpath = vars(parser.parse_args())['d']
 
-    # initialize to contain list for every stats
-    stats_lists = {}
-    for item in stats_needed:
-        stats_lists[item] = list()
+# iterate through files in directory
+for subdir in os.listdir(dirpath):
+    if os.path.isdir(dirpath + "/" + subdir):
 
-    # get directory path
-    dirpath = vars(parser.parse_args())['d']
+        # get config object from file name
+        arg_list = subdir.split("_")
+        config_dict = dict(zip(options, arg_list))
+        config = Config(config_dict= config_dict)
+        config_list.append(config)
 
-    # iterate through files in directory
-    for subdir in os.listdir(dirpath):
-        if os.path.isdir(dirpath + "/" + subdir):
+        # extract info from file
+        filename = dirpath +"/" + subdir + "/stats.txt"
+        with open(filename, 'r') as fp:
+            config_stats, _ = stats_extractor(fp)
+            for key in config_stats:
+                stats_lists[key].append(config_stats[key])
 
-            # get config object from file name
-            arg_list = subdir.split("_")
-            config_dict = dict(zip(options, arg_list))
-            config = Config(config_dict= config_dict)
-            config_list.append(config)
-
-            # extract info from file
-            filename = dirpath +"/" + subdir + "/stats.txt"
-            with open(filename, 'r') as fp:
-                config_stats, _ = stats_extractor(fp)
-                for key in config_stats:
-                    stats_lists[key].append(config_stats[key])
-
-    # print(stats_lists)                
-    # convert to numpy arrays
-    for key in stats_lists.keys():
-        stats_lists[key] = np.array(stats_lists[key])
+# print(stats_lists)                
+# convert to numpy arrays
+for key in stats_lists.keys():
+    stats_lists[key] = np.array(stats_lists[key])
 
 
-    # best 10 according to cpi value
-    sort_idx_cpi = np.argsort(stats_lists['cpi'])
-    top_10_by_cpi = []
+# best 10 according to cpi value
+sort_idx_cpi = np.argsort(stats_lists['cpi'])
+top_10_by_cpi = []
+for i in sort_idx_cpi[:10]:
+    top_10_by_cpi.append(config_list[i])
+
+# show top 10 configs
+print("Top 10 configs according to CPI values are as shown below:")
+for i, item in enumerate(top_10_by_cpi):
+    print(i+1, item)
+
+
+top_10_stats = {}
+for key in stats_lists.keys():
+    top_10_stats[key] = []
+    temp = stats_lists[key]
     for i in sort_idx_cpi[:10]:
-        top_10_by_cpi.append(config_list[i])
+        top_10_stats[key].append(temp[i])
+pprint(top_10_stats)
 
-    # show top 10 configs
-    print("Top 10 configs according to CPI values are as shown below:")
-    for i, item in enumerate(top_10_by_cpi):
-        print(i+1, item)
+x = list(range(1, 11))
+for key in stats_needed:
+    sns.set_style("darkgrid", {"grid.color": ".4", "grid.linestyle": ":"})
+    plt.figure(figsize= (10, 8))
 
+    ax = plt.gca()
+    # ax.yaxis.offsetText.set_visible(False)
+    # offset = ax.yaxis.get_major_formatter().get_offset()
 
-    top_10_stats = {}
-    for key in stats_lists.keys():
-        top_10_stats[key] = []
-        temp = stats_lists[key]
-        for i in sort_idx_cpi[:10]:
-            top_10_stats[key].append(temp[i])
-        plotter(x= list(range(10)), y= top_10_stats[key], xlabel= "configs", ylabel= str(key))
-    pprint(top_10_stats)
+    y_formatter = mticker.ScalarFormatter(useOffset=False)
+    ax.yaxis.set_major_formatter(y_formatter)
+
+    plt.plot(x, top_10_stats[key], marker= 'o')
+    plt.xlabel("configs")
+    plt.ylabel(key)
+    plt.xticks(x)
+    plt.title(key + " for top 10 configs by CPI")
+    plt.savefig(key + ".png")
