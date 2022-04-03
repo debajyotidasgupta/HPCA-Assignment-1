@@ -1,4 +1,4 @@
-# HPCA-Assignment-1
+ HPCA-Assignment-1
 
 Benchmarking with GEM5 simulation
 
@@ -125,7 +125,7 @@ $ python3 run.py
 # which will contain all the sinultation results
 
 # To run plots file
-$ python3 plot.py
+$ python3 plot.py -d /home/ubuntu/gem5/configs/assignment/runs/
 ```
 
 ## Images
