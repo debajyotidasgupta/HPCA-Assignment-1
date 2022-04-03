@@ -5,15 +5,16 @@ import os
 
 
 if __name__ == '__main__':
-    if not os.path.exists('runs'):
-        os.mkdir('runs')
-
-    if not os.path.exists('runs/logs.txt'):
-        os.system('touch runs/logs.txt')
-
     # log_file will contain all the configurations that have been simulated
     # so that they won't be simulated again for optimization
-    log_file = "/home/ubuntu/gem5/configs/assignment/runs/logs.txt"
+
+    if not os.path.exists('~/gem5/configs/assignment/runs'):
+        os.system('mkdir ~/gem5/configs/assignment/runs')
+
+    log_file = os.path.expanduser("~/gem5/configs/assignment/runs/logs.txt")
+    if not os.path.exists(log_file):
+        os.system("touch " + log_file)
+
     simulated_configs = set()
     with open(log_file, "r") as f:
         simulated_configs = set([line.strip().split(':')[2]
@@ -34,10 +35,10 @@ if __name__ == '__main__':
 
     # command to execute with different configurations
 
-    command = """/home/ubuntu/gem5/build/X86/gem5.opt                   \
-        -d /home/ubuntu/gem5/configs/assignment/runs/{}                 \
-        /home/ubuntu/gem5/configs/assignment/config.py                  \
-        -b /home/ubuntu/gem5/configs/assignment/qsort4                  \
+    command = """~/gem5/build/X86/gem5.opt                   \
+        -d ~/gem5/configs/assignment/runs/{}                 \
+        ~/gem5/configs/assignment/config.py                  \
+        -b ~/gem5/configs/assignment/qsort4                  \
         --l1d_size={} --l1i_size={} --l2_size={} --l1_assoc={}          \
         --l2_assoc={} --bp_type={} --numROBEntries={} --numIQEntries={}"""
 
