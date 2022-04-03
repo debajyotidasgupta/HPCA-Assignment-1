@@ -22,7 +22,7 @@ Following mentioned are the major frameworks/libraries used to bootstrap this pr
 - [seaborn](https://seaborn.pydata.org/) - Python library for plotting.
 - [process](https://docs.python.org/3/library/subprocess.html) - Python library for running shell commands.
 
-## Project Structure
+## Project Structure (SUBMISSION)
 
 ```
 .
